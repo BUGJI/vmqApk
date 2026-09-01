@@ -10,7 +10,6 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
-import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -131,8 +130,8 @@ public class NeNotificationService2  extends NotificationListenerService {
         if (notification != null) {
             Bundle extras = notification.extras;
             if (extras != null) {
-                String title = extras.getString(NotificationCompat.EXTRA_TITLE, "");
-                String content = extras.getString(NotificationCompat.EXTRA_TEXT, "");
+                String title = extras.getString(Notification.EXTRA_TITLE, "");
+                String content = extras.getString(Notification.EXTRA_TEXT, "");
                 Log.d(TAG, "**********************");
                 Log.d(TAG, "包名:" + pkg);
                 Log.d(TAG, "标题:" + title);
@@ -141,9 +140,12 @@ public class NeNotificationService2  extends NotificationListenerService {
 
 
                 if (pkg.equals("com.eg.android.AlipayGphone")){
-                    if (content!=null && !content.equals("")) {
-                        if (content.indexOf("通过扫码向你付款")!=-1 || content.indexOf("成功收款")!=-1){
-                            String money = getMoney(content);
+                    // 新版支付宝把"你已成功收款xx元"放进了标题(title)，内容(content)只剩"已转入余额..."
+                    // 因此合并 title+content 一起判断关键词和提取金额
+                    String text = (title==null?"":title) + (content==null?"":content);
+                    if (text.length()>0) {
+                        if (text.indexOf("成功收款")!=-1 || text.indexOf("通过扫码向你付款")!=-1 || text.indexOf("收款成功")!=-1 || text.indexOf("已转入余额")!=-1){
+                            String money = findMoney(text);
                             if (money!=null){
                                 Log.d(TAG, "onAccessibilityEvent: 匹配成功： 支付宝 到账 " + money);
                                 appPush(2, Double.valueOf(money));
@@ -160,10 +162,10 @@ public class NeNotificationService2  extends NotificationListenerService {
                     }
 
                 }else if(pkg.equals("com.tencent.mm")){
-
-                    if (content!=null && !content.equals("")){
-                        if (title.equals("微信支付") || title.equals("微信收款助手") || title.equals("微信收款商业版")){
-                            String money = getMoney(content);
+                    String text = (title==null?"":title) + (content==null?"":content);
+                    if (text.length()>0){
+                        if (title.equals("微信支付") || title.equals("微信收款助手") || title.equals("微信收款商业版") || text.indexOf("收款")!=-1){
+                            String money = findMoney(text);
                             if (money!=null){
                                 Log.d(TAG, "onAccessibilityEvent: 匹配成功： 微信到账 "+ money);
                                 appPush(1,Double.valueOf(money));
@@ -265,6 +267,17 @@ public class NeNotificationService2  extends NotificationListenerService {
             return ss.get(ss.size()-1);
         }
 
+    }
+
+    // 优先匹配"X元"模式（如"收款0.03元"/"已到账12.5元"），避免被通知里的广告数字(如"0.38%费率")误导；
+    // 匹配不到再退回旧逻辑取最后一个数字
+    public static String findMoney(String text){
+        if (text==null) return null;
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("([0-9]+(\\.[0-9]{1,2})?)元").matcher(text);
+        if (m.find()) {
+            return m.group(1);
+        }
+        return getMoney(text);
     }
     public static String md5(String string) {
         if (TextUtils.isEmpty(string)) {
