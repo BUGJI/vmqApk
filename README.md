@@ -3,7 +3,8 @@ V免签  —— 个人开发者收款解决方案
 ===============
 
 
-> 本分支为维护版，更新日志见 [CHANGELOG.md](CHANGELOG.md)（修复新版支付宝通知解析：title+content 双字段 + 金额提取防广告数字误判）。
+> 本仓库为 [szvone/vmqApk](https://github.com/szvone/vmqApk)（原作者：vone）的**维护分支**，原版已不再维护。
+> 修复内容：新版支付宝/微信通知解析（title+content 双字段 + 金额提取防广告数字误判），更新日志见 [CHANGELOG.md](CHANGELOG.md)。
 
 V免签 是基于SpringBoot 2.1.1/ThinkPhP5.1 实现的一套免签支付程序，主要包含以下特色：
 
@@ -15,9 +16,7 @@ V免签 是基于SpringBoot 2.1.1/ThinkPhP5.1 实现的一套免签支付程序�
 
 > bug反馈请建立issues
 
-> Java版服务端地址：【 https://github.com/szvone/Vmq 】
-
-> PHP 版服务端地址：【 https://github.com/szvone/vmqphp 】
+> PHP 版服务端地址（维护分支）：【 https://github.com/BUGJI/vmqphp 】
 
 ## 前言
 
@@ -76,6 +75,12 @@ V免签为完全开源项目，开源项目意味着作者没有任何收入来�
     + 微信收款商业版店员到账收款通知
 
 ## 更新记录
+ + v1.1.0（2026.09.01）
+    + 修复新版支付宝通知解析：收款文案已从通知内容挪到标题，改为 title+content 双字段匹配
+    + 修复金额提取：新增 findMoney() 优先匹配「X元」模式，避免被通知内广告数字（如 0.38% 费率）误导
+    + 移除 support/appcompat 依赖、删除 Canvas.save(int) 过时 API、支持明文 HTTP 直连服务端
+    + 构建：手工 aapt2/javac/d8/apksigner（build-tools 28.0.3），签名与原版不同，升级需卸载旧版
+
  + v1.8.1（2019.12.20）
     + 修复上个版本无法正常回调问题
 
@@ -128,4 +133,6 @@ V免签遵循 MIT License 开源协议发布，并提供免费使用，请勿用
 版权所有Copyright © 2019 by vone (http://szvone.cn)
 
 All rights reserved。
+
+维护分支：BUGJI（https://github.com/BUGJI/vmqApk）
 
